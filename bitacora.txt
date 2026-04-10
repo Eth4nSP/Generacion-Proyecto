@@ -1,0 +1,48 @@
+BITÁCORA DE PREPARACIÓN DE INFRAESTRUCTURA E INTEGRACIÓN CONTINUA
+=================================================================
+Proyecto: Generación - Backend / CI-CD Setup
+Autor: Ethan (Eth4nSP)
+Fecha de inicio: 10 de Abril de 2026
+
+OBJETIVO:
+Establecer la arquitectura base de un proyecto Node.js aplicando Clean Code, formateo automático, revisión de estándares, pruebas unitarias y automatización mediante integración continua (CI).
+
+REGISTRO DE ACTIVIDADES Y SOLUCIÓN DE PROBLEMAS:
+
+1. Preparación del Entorno Local:
+   - Se verificó la instalación de Node.js mediante NVM en versión LTS.
+   - Entorno de desarrollo configurado en VS Code con las extensiones de calidad necesarias: ESLint, Prettier, SonarLint, Jest, Error Lens y GitLens.
+
+2. Inicialización del Proyecto:
+   - Ejecución de `npm init -y` para crear el package.json.
+   - Ejecución de `git init` para inicializar el repositorio local.
+   - Instalación de TypeScript y generación del archivo `tsconfig.json` (`npx tsc --init`).
+
+3. Configuración de Code Style y Linter (Incidencia y Resolución):
+   - Se instalaron las dependencias de Prettier y ESLint. 
+   - INCIDENCIA: Hubo un conflicto de dependencias "ERESOLVE" (peer dependencies) debido a que `eslint-plugin-import` no era compatible con ESLint v10. Además, el nuevo formato "Flat Config" de la versión 9 generaba incompatibilidades con el archivo `.eslintrc.json`.
+   - SOLUCIÓN: Se decidió hacer un downgrade estratégico a `"eslint": "^8.57.0"` para garantizar la estabilidad de los plugins de TypeScript y el correcto funcionamiento de la configuración.
+   - Se crearon los archivos `.prettierrc` y `.eslintrc.json` con reglas estrictas de tipado y estilo.
+
+4. Implementación de Git Hooks (Husky y Lint-Staged):
+   - Se instaló e inicializó Husky (`npx husky-init`).
+   - Se configuró el hook `pre-commit` para ejecutar `lint-staged` (formateo y corrección automática de archivos .js y .ts antes de cada commit).
+   - Se configuró el hook `pre-push` para ejecutar `npm test`, garantizando que no se suba código roto al repositorio.
+
+5. Configuración del Entorno de Pruebas (Jest + TypeScript):
+   - INCIDENCIA: Al intentar hacer el commit inicial, ESLint bloqueaba los archivos de prueba indicando que 'describe', 'it' y 'expect' no estaban definidos, además de lanzar errores de "Unsafe call" por no reconocer los tipos. Posteriormente, Husky fallaba al no encontrar el comando `jest`.
+   - SOLUCIÓN: 
+     a) Se instalaron los tipos `@types/jest` y el motor `jest` junto con `ts-jest`.
+     b) Se agregó `"types": ["node", "jest"]` al `tsconfig.json`.
+     c) Se generó la configuración `jest.config.js` mediante `npx ts-jest config:init`.
+     d) Se migró el archivo de pruebas a TypeScript (`src/test.ts`) para alinear toda la validación.
+
+6. Integración Continua (GitHub Actions):
+   - Se creó el directorio `.github/workflows` y el archivo `ci.yml`.
+   - Se definió un pipeline que se dispara con eventos 'push' y 'pull_request' en las ramas 'main' y 'develop'.
+   - El pipeline incluye pasos para: Checkout del código, setup de Node.js (matrices 18.x y 20.x), auditoría de seguridad (`npm audit`), revisión de Prettier, revisión de ESLint, verificación de tipos (TypeScript) y ejecución de pruebas (Jest).
+
+7. Despliegue en Repositorio Remoto:
+   - Se enlazó el proyecto con el origen remoto en GitHub.
+   - El primer pipeline se ejecutó exitosamente tras pasar los validadores locales de Husky.
+
